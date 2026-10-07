@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Understory — Screen-Zero Open-Source Naturalist & Garden Companion</title>
+  <meta name="description" content="Understory is an entirely offline, audio-first field companion built with open-source AI (llama.cpp, whisper.cpp, Moondream, Llama 3.2) designed to get you off screens and into nature.">
+  <meta name="keywords" content="Touch Grass, Open Source AI, offline AI, llama.cpp, whisper.cpp, Moondream, foraging, gardening, permaculture">
+  
+  <!-- Modern Typography from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Ambient Spores & Bioluminescent Particle Canvas -->
+  <canvas id="ambient-spores-canvas" aria-hidden="true"></canvas>
+
+  <!-- Ambient Backdrop Glows -->
+  <div class="background-glow glow-top-right" aria-hidden="true"></div>
+  <div class="background-glow glow-bottom-left" aria-hidden="true"></div>
+  <div class="background-glow glow-center" aria-hidden="true"></div>
+
+  <!-- App Main Root -->
+  <div id="app-root">
+
+    <!-- Header & Top Telemetry -->
+    <header class="app-header">
+      <div class="brand-wrapper">
+        <div class="brand-icon-box" aria-hidden="true">🌿</div>
+        <div class="brand-title-group">
+          <h1>
+            Understory
+            <span class="badge-offline">100% Offline Edge AI</span>
+          </h1>
+          <p class="brand-tagline">Screen-Zero Field Naturalist & Permaculture Garden Companion</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Live Gemini Flash AI Toggle & Status -->
+        <button id="toggle-gemini-btn" class="soundscape-pill active" title="Google Gemini Flash API Connected" aria-label="Gemini API Status">
+          <span>⚡ Gemini Flash: Live</span>
+        </button>
+
+        <!-- Procedural Forest Ambience Soundscape -->
+        <button id="toggle-soundscape-btn" class="soundscape-pill" aria-label="Toggle procedural nature soundscape">
+          <div class="sound-wave-bars" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <span class="sound-status-label">Forest Ambience: Off</span>
+        </button>
+
+        <!-- TTS Live Status -->
+        <div id="tts-live-indicator" class="soundscape-pill">
+          <span>🟢 Ready (Audio)</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="app-nav-tabs" role="tablist" aria-label="Application sections">
+      <button id="nav-btn-screen-zero" class="nav-tab-btn active" data-target="tab-screen-zero" role="tab" aria-selected="true">
+        <span>🎧 Eyes-Up Trail HUD</span>
+        <span class="badge-screen-zero">Screen-Zero</span>
+      </button>
+      <button id="nav-btn-scanner" class="nav-tab-btn" data-target="tab-scanner" role="tab" aria-selected="false">
+        <span>📷 Local Specimen Scanner</span>
+      </button>
+      <button id="nav-btn-garden" class="nav-tab-btn" data-target="tab-garden" role="tab" aria-selected="false">
+        <span>🌱 Permaculture Garden Beds</span>
+      </button>
+      <button id="nav-btn-journal" class="nav-tab-btn" data-target="tab-journal" role="tab" aria-selected="false">
+        <span>📓 Offline Field Journal</span>
+      </button>
+      <button id="nav-btn-stack" class="nav-tab-btn" data-target="tab-stack" role="tab" aria-selected="false">
+        <span>⚡ Open AI Architecture</span>
+      </button>
+    </nav>
+
+    <!-- "Touch Grass" Real-Time Telemetry Bar -->
+    <section class="touch-grass-telemetry-bar" aria-label="Touch Grass Activity Telemetry">
+      <div class="telemetry-card">
+        <div class="telemetry-icon-wrap">🌲</div>
+        <div class="telemetry-meta">
+          <div class="label">Time in Nature</div>
+          <div class="value" id="time-outside-display">1h 27m</div>
+          <div class="sub-hint">Bear Creek Wilderness Trail</div>
+        </div>
+      </div>
+
+      <div class="telemetry-card">
+        <div class="telemetry-icon-wrap">📱</div>
+        <div class="telemetry-meta">
+          <div class="label">Screen Time Spent</div>
+          <div class="value" id="screen-time-display">42s</div>
+          <div class="sub-hint">Minimal Glances Only</div>
+        </div>
+      </div>
+
+      <div class="telemetry-card">
+        <div class="telemetry-icon-wrap">🍃</div>
+        <div class="telemetry-meta">
+          <div class="label">Grass-Touched Ratio</div>
+          <div class="value" id="grass-ratio-display">99.2%</div>
+          <div class="sub-hint">✨ Pure Outdoor Immersion</div>
+        </div>
+      </div>
+
+      <div class="telemetry-card">
+        <div class="telemetry-icon-wrap">📶</div>
+        <div class="telemetry-meta">
+          <div class="label">Cellular & Cloud Telemetry</div>
+          <div class="value" style="color: var(--emerald-light);">0.00 KB</div>
+          <div class="sub-hint">Air-Gapped Privacy Verified</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAIN PANELS -->
+    <main id="main-content">
+
+      <!-- ======================================================= -->
+      <!-- TAB 1: EYES-UP / SCREEN-ZERO TRAIL SIMULATOR            -->
+      <!-- ======================================================= -->
+      <section id="tab-screen-zero" class="tab-panel active" role="tabpanel">
+        <div class="screen-zero-container">
+          
+          <!-- Left: Pocket Device HUD -->
+          <div class="device-simulator-pod">
+            <div class="device-status-badge">
+              <span class="pulsing-dot"></span>
+              <span>Pocket Naturalist Active (Bone-Conduction Audio)</span>
+            </div>
+
+            <!-- Compass HUD Core -->
+            <div class="compass-ring-container">
+              <div class="compass-outer-dial" aria-hidden="true"></div>
+              <div id="compass-interactive-core" class="compass-inner-core" title="Click to trigger field whisper">
+                <div class="compass-bearing">342° NW</div>
+                <div class="compass-sublabel">Alt: 3,420 ft</div>
+                <div class="mic-interactive-trigger">🎙️</div>
+              </div>
+            </div>
+
+            <!-- Single Physical Action Button -->
+            <button id="big-screen-zero-listen-btn" class="big-listen-action-btn">
+              <span>🎙️</span>
+              <span>Tap to Whisper or Blind-Snap</span>
+            </button>
+            <div class="interaction-tip">💡 Or press <kbd>Spacebar</kbd> anytime to simulate collar-clip microphone</div>
+
+            <!-- "Look Up" Screen Dimmer Trigger -->
+            <div class="look-up-reminder-banner">
+              <div class="look-up-text">
+                <h4>Anti-Screen Protocol</h4>
+                <p>Dim display to zero light and pocket your phone.</p>
+              </div>
+              <button id="trigger-anti-screen-btn" class="dismiss-curtain-btn" style="border-color: var(--emerald-neon);">
+                Dim Screen Now
+              </button>
+            </div>
+          </div>
+
+          <!-- Right: Audio Transcript & Sensory Prompts -->
+          <div class="naturalist-audio-stream-card">
+            <div class="card-header-row">
+              <div class="card-title-combo">
+                <h3>🎧 Naturalist Audio Stream</h3>
+                <span class="engine-tag">whisper.cpp + Llama 3.2 3B</span>
+              </div>
+              <div class="tts-speaker-status">
+                <span>🔊 Piper Neural Audio</span>
+              </div>
+            </div>
+
+            <!-- Conversation Stream -->
+            <div id="audio-transcript-feed" class="audio-transcript-feed">
+              <div class="transcript-bubble bubble-naturalist">
+                <div class="bubble-meta">
+                  <span>🌿 Understory Naturalist (Llama 3.2 3B + Piper)</span>
+                  <span class="badge-offline">0ms Cloud</span>
+                </div>
+                <p>Welcome to Bear Creek Trail. You have entered a damp temperate hemlock corridor. Put your phone in your pocket; I'm connected via your bone-conduction headset. Whenever you notice an unfamiliar bird, leaf, or fungus, press the collar clip and speak.</p>
+                <div class="sensory-action-box">
+                  🍃 Sensory invitation: Breathe in through your nose—notice the rich petrichor smell of moist cedar humus?
+                </div>
+              </div>
+            </div>
+
+            <!-- Custom Naturalist Question Input -->
+            <form id="custom-ask-form" class="custom-ask-input-row">
+              <input type="text" id="custom-ask-input" placeholder="Ask Naturalist anything (e.g. 'How do I identify chanterelles?')" autocomplete="off">
+              <button type="submit" id="custom-ask-submit-btn" class="custom-ask-btn">Ask 🌿</button>
+            </form>
+
+            <!-- Quick Field Prompts Bar -->
+            <div class="quick-field-prompts-bar">
+              <button class="quick-prompt-chip" data-prompt="What is this velvety shelf fungus on the fallen cedar log?">
+                🍄 Ask about shelf fungus
+              </button>
+              <button class="quick-prompt-chip" data-prompt="Why are the leaves on my garden tomatoes curling slightly upward?">
+                🍅 Ask about tomato leaf curl
+              </button>
+              <button class="quick-prompt-chip" data-prompt="What is that 3-beat rhythm bird call in the canopy to my north?">
+                🐦 Identify bird call
+              </button>
+              <button class="quick-prompt-chip" data-prompt="Can I harvest these young nettle leaves without gloves?">
+                🍵 Nettle harvest safety
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ======================================================= -->
+      <!-- TAB 2: LOCAL AI SPECIMEN & GARDEN SCANNER               -->
+      <!-- ======================================================= -->
+      <section id="tab-scanner" class="tab-panel" role="tabpanel">
+        <div class="scanner-grid-container">
+          
+          <!-- Left: Specimen Viewport & Media Stage -->
+          <div class="specimen-viewport-card">
+            <div class="viewport-media-stage">
+              <img id="scanner-specimen-img" src="assets/turkey_tail.jpg" alt="Active Botanical Specimen">
+              <!-- Local Moondream2 Bounding Box -->
+              <div id="vlm-specimen-box" class="vlm-bounding-box">
+                <span id="vlm-specimen-label" class="vlm-box-label">Trametes versicolor [99.4% conf]</span>
+              </div>
+            </div>
+
+            <!-- Specimen Selection Thumbnails -->
+            <div class="specimen-selector-strip">
+              <div class="specimen-sample-thumb active" data-specimen="turkey_tail" title="Turkey Tail Mushroom">
+                <img src="assets/turkey_tail.jpg" alt="Turkey Tail">
+                <span class="thumb-title">Turkey Tail</span>
+              </div>
+              <div class="specimen-sample-thumb" data-specimen="tomato_plant" title="Heirloom Tomato Bed">
+                <img src="assets/tomato_plant.jpg" alt="Heirloom Tomato">
+                <span class="thumb-title">Heirloom Tomato</span>
+              </div>
+              <div class="specimen-sample-thumb" data-specimen="stinging_nettle" title="Stinging Nettle">
+                <img src="assets/stinging_nettle.jpg" alt="Stinging Nettle">
+                <span class="thumb-title">Stinging Nettle</span>
+              </div>
+
+              <!-- Custom Local Photo Upload -->
+              <label class="custom-upload-tile" for="custom-specimen-input" title="Upload custom photo or camera snap">
+                <span style="font-size: 1.1rem;">📷</span>
+                <span>Upload</span>
+                <input type="file" id="custom-specimen-input" accept="image/*" style="display: none;">
+              </label>
+            </div>
+          </div>
+
+          <!-- Right: Diagnostic Breakdown & Naturalist Analysis -->
+          <div class="scanner-results-card">
+            <div class="taxonomy-header">
+              <h2 id="specimen-scientific-name" class="scientific-name">Trametes versicolor</h2>
+              <div id="specimen-common-name" class="common-name">
+                Turkey Tail Fungus <span class="badge-offline">Local Model</span>
+              </div>
+            </div>
+
+            <div id="specimen-badges-row" class="diagnostic-badges-row">
+              <span class="pill-badge pill-safe-forage">🍄 Verified Forageable</span>
+              <span class="pill-badge pill-tactile">✋ Tactile Test Required</span>
+            </div>
+
+            <!-- Identification Section -->
+            <div class="diagnostic-accordion-section">
+              <h4>🔍 Botanical & Fungal Morphology</h4>
+              <p id="specimen-ident-text">
+                Concentric growth bands alternating in shades of buff, cinnamon, and cream with a velvet-soft upper surface. Underside features 3–8 microscopic white pores per millimeter rather than gills.
+              </p>
+            </div>
+
+            <!-- Tactile & Sensory Verification Cue -->
+            <div class="diagnostic-accordion-section" style="border-left: 3px solid var(--amber-spore);">
+              <h4>✋ Hands-in-the-Dirt Tactile Test</h4>
+              <p id="specimen-tactile-text">
+                Run your thumb across the damp surface: true Turkey Tail feels like soft suede or moleskin, and the underside is flat and spongy. If the underside is smooth parchment with no pores, it is False Turkey Tail (Stereum ostrea).
+              </p>
+            </div>
+
+            <!-- Permaculture & Garden Care Utility -->
+            <div class="diagnostic-accordion-section" style="border-left: 3px solid var(--emerald-neon);">
+              <h4>🌱 Garden & Soil Regeneration Role</h4>
+              <p id="specimen-garden-text">
+                Saprophytic log inoculant: Highly beneficial for building woodland fungal humus and accelerating nurse-log soil replenishment in shaded garden corners.
+              </p>
+            </div>
+
+            <!-- Replay Audio Button -->
+            <button id="replay-scanner-speech-btn" class="replay-audio-btn" style="margin-top: 0.5rem; font-size: 0.85rem; padding: 0.45rem 1rem;">
+              🔊 Speak Field Guidance (Piper TTS)
+            </button>
+
+            <!-- Edge Pipeline Telemetry -->
+            <div class="edge-pipeline-stat-box">
+              <div class="stat-item-live">
+                <span>VLM Vision Model</span>
+                <strong>Moondream2 (4-bit)</strong>
+              </div>
+              <div class="stat-item-live">
+                <span>Inference Time</span>
+                <strong>340ms (Local CPU)</strong>
+              </div>
+              <div class="stat-item-live">
+                <span>Network Data</span>
+                <strong style="color: var(--emerald-light);">0 bytes (Air-Gapped)</strong>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ======================================================= -->
+      <!-- TAB 3: PERMACULTURE GARDEN CARE BEDS                    -->
+      <!-- ======================================================= -->
+      <section id="tab-garden" class="tab-panel" role="tabpanel">
+        <div style="margin-bottom: 1.5rem;">
+          <h2 style="font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; color: #fff;">
+            🌱 Backyard & Homestead Garden Allotment
+          </h2>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">
+            Real-time permaculture polyculture beds monitored via local sensor readings and companion plant matrices.
+          </p>
+        </div>
+
+        <div class="garden-beds-grid">
+          
+          <!-- Bed A: Solanaceae -->
+          <article class="garden-bed-card">
+            <div class="bed-card-header">
+              <div class="bed-title-box">
+                <h3>Bed A: Heirloom Solanaceae</h3>
+                <span>Brandywine Tomatoes, Sweet Bell Peppers</span>
+              </div>
+              <span class="bed-status-pill status-optimal">Optimal Vigor</span>
+            </div>
+
+            <div class="bed-gauges-row">
+              <div class="gauge-block">
+                <div class="gauge-label">Soil Moisture (Depth 3")</div>
+                <div class="gauge-value">68%</div>
+                <div class="progress-track"><div class="progress-fill" style="width: 68%;"></div></div>
+              </div>
+              <div class="gauge-block">
+                <div class="gauge-label">Sunlight Exposure</div>
+                <div class="gauge-value">7.2 hrs</div>
+                <div class="progress-track"><div class="progress-fill amber" style="width: 80%;"></div></div>
+              </div>
+            </div>
+
+            <div class="companion-matrix-box">
+              <h5>🌿 Active Companion Guild</h5>
+              <div class="companion-chips-list">
+                <span class="companion-chip">🧄 French Marigolds (Nematode repellent)</span>
+                <span class="companion-chip">🍃 Genovese Basil (Flavor & pest barrier)</span>
+                <span class="companion-chip">🌼 Alyssum (Hoverfly attractant)</span>
+              </div>
+            </div>
+
+            <div class="bed-action-btn-row">
+              <button class="bed-action-btn" onclick="window.handleGardenAction('Bed A', 'water')">
+                💧 Log Deep Soak
+              </button>
+              <button class="bed-action-btn" onclick="window.handleGardenAction('Bed A', 'mulch')">
+                🍂 Add Straw Mulch
+              </button>
+            </div>
+          </article>
+
+          <!-- Bed B: Brassicas & Greens -->
+          <article class="garden-bed-card">
+            <div class="bed-card-header">
+              <div class="bed-title-box">
+                <h3>Bed B: Cool-Weather Brassicas</h3>
+                <span>Lacinato Kale, Purple Sprouting Broccoli</span>
+              </div>
+              <span class="bed-status-pill status-attention">Needs Mulch</span>
+            </div>
+
+            <div class="bed-gauges-row">
+              <div class="gauge-block">
+                <div class="gauge-label">Soil Moisture (Depth 3")</div>
+                <div class="gauge-value">54%</div>
+                <div class="progress-track"><div class="progress-fill" style="width: 54%;"></div></div>
+              </div>
+              <div class="gauge-block">
+                <div class="gauge-label">Foliage Temperature</div>
+                <div class="gauge-value">64°F</div>
+                <div class="progress-track"><div class="progress-fill" style="width: 60%;"></div></div>
+              </div>
+            </div>
+
+            <div class="companion-matrix-box">
+              <h5>🌿 Active Companion Guild</h5>
+              <div class="companion-chips-list">
+                <span class="companion-chip">🌱 Dill (Parasitic wasp haven)</span>
+                <span class="companion-chip">🌿 Sage (Cabbage moth barrier)</span>
+                <span class="companion-chip">🧄 Garlic (Aphid deterrence)</span>
+              </div>
+            </div>
+
+            <div class="bed-action-btn-row">
+              <button class="bed-action-btn" onclick="window.handleGardenAction('Bed B', 'water')">
+                💧 Log Water
+              </button>
+              <button class="bed-action-btn" onclick="window.handleGardenAction('Bed B', 'mulch')">
+                🍂 Topdress Compost
+              </button>
+            </div>
+          </article>
+
+          <!-- Bed C: Woodland Fungi & Native Polyculture -->
+          <article class="garden-bed-card">
+            <div class="bed-card-header">
+              <div class="bed-title-box">
+                <h3>Bed C: Shaded Fungi Nursery</h3>
+                <span>Oak Log Inoculations, Wild Nettle Nurse</span>
+              </div>
+              <span class="bed-status-pill status-optimal">Colonizing</span>
+            </div>
+
+            <div class="bed-gauges-row">
+              <div class="gauge-block">
+                <div class="gauge-label">Substrate Humidity</div>
+                <div class="gauge-value">84%</div>
+                <div class="progress-track"><div class="progress-fill" style="width: 84%;"></div></div>
+              </div>
+              <div class="gauge-block">
+                <div class="gauge-label">Canopy Shade</div>
+                <div class="gauge-value">90%</div>
+                <div class="progress-track"><div class="progress-fill" style="width: 90%;"></div></div>
+              </div>
+            </div>
+
+            <div class="companion-matrix-box">
+              <h5>🍄 Active Fungal Species</h5>
+              <div class="companion-chips-list">
+                <span class="companion-chip">🍄 Turkey Tail (Trametes versicolor)</span>
+                <span class="companion-chip">🍵 Urtica dioica (Silica accumulator)</span>
+                <span class="companion-chip">🪵 Hardwood sawdust bedding</span>
+              </div>
+            </div>
+
+            <div class="bed-action-btn-row">
+              <button class="bed-action-btn" onclick="window.handleGardenAction('Bed C', 'water')">
+                💧 Mist Logs
+              </button>
+              <button class="bed-action-btn" onclick="window.handleGardenAction('Bed C', 'harvest')">
+                🧺 Schedule Harvest
+              </button>
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ======================================================= -->
+      <!-- TAB 4: OFFLINE FIELD JOURNAL                            -->
+      <!-- ======================================================= -->
+      <section id="tab-journal" class="tab-panel" role="tabpanel">
+        <div class="field-journal-header">
+          <div>
+            <h2 style="font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; color: #fff;">
+              📓 Local Offline Field Journal
+            </h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">
+              All records stored locally in SQLite. Zero cloud sync, zero GPS tracking.
+            </p>
+          </div>
+          <button id="export-journal-btn" class="export-journal-btn">
+            <span>📥</span>
+            <span>Export Notes (.md)</span>
+          </button>
+        </div>
+
+        <div class="journal-timeline">
+          
+          <div class="journal-entry-card">
+            <div class="journal-entry-thumb">
+              <img src="assets/turkey_tail.jpg" alt="Turkey Tail">
+            </div>
+            <div class="journal-entry-details">
+              <h4>Turkey Tail Fungus (Trametes versicolor)</h4>
+              <div class="journal-meta-row">
+                <span>🕒 09:40 AM</span>
+                <span>📍 Bear Creek Ravine (3,420 ft)</span>
+                <span style="color: var(--emerald-light);">🍄 Safe Forage</span>
+              </div>
+              <div class="journal-sensory-snippet">
+                "Pores verified on underside (approx 4/mm). Velvet soft suede pile along top margin. Harvested small cluster for winter immunity decoction."
+              </div>
+            </div>
+            <div>
+              <button class="replay-audio-btn" onclick="window.speakNaturalist('Turkey Tail logged at Bear Creek Ravine. Underside pores confirmed.')">
+                🔊 Audio
+              </button>
+            </div>
+          </div>
+
+          <div class="journal-entry-card">
+            <div class="journal-entry-thumb">
+              <img src="assets/stinging_nettle.jpg" alt="Stinging Nettle">
+            </div>
+            <div class="journal-entry-details">
+              <h4>Wild Stinging Nettle (Urtica dioica)</h4>
+              <div class="journal-meta-row">
+                <span>🕒 10:15 AM</span>
+                <span>📍 Stream Bank Alluvial Flat (3,380 ft)</span>
+                <span style="color: var(--amber-spore);">⚠️ Formic Acid</span>
+              </div>
+              <div class="journal-sensory-snippet">
+                "Square stem and serrated leaves. Trichome hairs dense along lower petiole. Harvested apical tips using trail gloves for garden fertilizer ferment."
+              </div>
+            </div>
+            <div>
+              <button class="replay-audio-btn" onclick="window.speakNaturalist('Wild Stinging Nettle logged. Harvested apical whorls for compost activator.')">
+                🔊 Audio
+              </button>
+            </div>
+          </div>
+
+          <div class="journal-entry-card">
+            <div class="journal-entry-thumb">
+              <img src="assets/tomato_plant.jpg" alt="Heirloom Tomato Bed">
+            </div>
+            <div class="journal-entry-details">
+              <h4>Heirloom Brandywine Tomato (Bed A)</h4>
+              <div class="journal-meta-row">
+                <span>🕒 11:10 AM</span>
+                <span>📍 Homestead Garden Allotment</span>
+                <span style="color: var(--emerald-light);">🌱 Permaculture Bed</span>
+              </div>
+              <div class="journal-sensory-snippet">
+                "Foliage healthy, potato-leaf structure. Soil finger-test reveals 68% moisture. Interplanted French Marigold borders blooming."
+              </div>
+            </div>
+            <div>
+              <button class="replay-audio-btn" onclick="window.speakNaturalist('Heirloom tomato bed inspection complete. Hydration balanced.')">
+                🔊 Audio
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ======================================================= -->
+      <!-- TAB 5: OPEN-SOURCE ARCHITECTURE INSPECTOR               -->
+      <!-- ======================================================= -->
+      <section id="tab-stack" class="tab-panel" role="tabpanel">
+        <div class="architecture-hero-box">
+          <h3>⚡ 100% Open-Source Edge Intelligence Stack</h3>
+          <p>
+            Understory does not call OpenAI, Anthropic, or proprietary cloud APIs. Every model is open-weight and compiled directly for low-power edge silicon via Georgi Gerganov's C/C++ runtimes. It is fundamentally impossible for network dropouts on the trail to interrupt your experience.
+          </p>
+
+          <div class="open-stack-grid">
+            <div class="stack-layer-card">
+              <div class="layer-role">Speech Ingestion</div>
+              <h4>whisper.cpp</h4>
+              <p>Quantized OpenAI Whisper (`ggml-base.en.bin` Q5_1). Transcribes voice whisper inputs in under 180ms with 0 internet connection on ARM Cortex-A76.</p>
+            </div>
+
+            <div class="stack-layer-card">
+              <div class="layer-role">Vision-Language Model</div>
+              <h4>Moondream2 (1.86B)</h4>
+              <p>4-bit quantized vision model. Evaluates leaf venation, fungal pores, and insect markings with sub-400ms inference on consumer mobile hardware.</p>
+            </div>
+
+            <div class="stack-layer-card">
+              <div class="layer-role">Reasoning & Taxonomy Core</div>
+              <h4>Llama 3.2 3B-Instruct</h4>
+              <p>Meta's open-weight model executed via `llama.cpp` (Q4_K_M). Specialized system prompt generates sensory-first, tactile outdoor guidance instead of screen text.</p>
+            </div>
+
+            <div class="stack-layer-card">
+              <div class="layer-role">Local RAG Knowledge</div>
+              <h4>LlamaIndex + SQLite</h4>
+              <p>Indexed USDA plant taxonomy, Audubon bird calls, and OpenStreetMap topography using quantized `bge-micro-v2` embeddings stored on-device.</p>
+            </div>
+
+            <div class="stack-layer-card">
+              <div class="layer-role">Neural Speech Synthesis</div>
+              <h4>Piper TTS (ONNX)</h4>
+              <p>Lightweight local neural text-to-speech running `en_US-lessac-medium` at >6x real-time speed. Whispers warm, measured guidance directly into headphones.</p>
+            </div>
+
+            <div class="stack-layer-card">
+              <div class="layer-role">Air-Gapped Privacy</div>
+              <h4>Zero Cloud Telemetry</h4>
+              <p>No telemetry, no tracking pixels, no server pings. Sensitive wild foraging spots and endangered native plants remain strictly private on the user's hardware.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div>
+        <span>🌿 Understory v1.0.0 — Created for the <strong>Touch Grass</strong> Hackathon</span>
+      </div>
+      <div class="footer-credits">
+        <span>Powered by <a href="https://github.com/ggerganov/llama.cpp" target="_blank" rel="noopener">llama.cpp</a> &bull; <a href="https://github.com/ggerganov/whisper.cpp" target="_blank" rel="noopener">whisper.cpp</a> &bull; <a href="https://github.com/rhasspy/piper" target="_blank" rel="noopener">Piper TTS</a></span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- ANTI-SCREEN PROTOCOL "LOOK UP" OVERLAY -->
+  <aside id="anti-screen-curtain" aria-label="Anti-Screen Trail Mode Dimmer">
+    <div class="curtain-content">
+      <div style="font-size: 3.5rem; margin-bottom: 0.5rem;" aria-hidden="true">🍃</div>
+      <h2>Look Up.</h2>
+      <p>Your screen is dimmed. Put your device in your pocket. Feel the breeze, listen to the canopy, and let the trail guide you.</p>
+      <button id="dismiss-curtain-btn" class="dismiss-curtain-btn">
+        Return to Screen HUD
+      </button>
+    </div>
+  </aside>
+
+  <!-- Toast Container -->
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
